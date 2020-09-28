@@ -1,0 +1,72 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>CONSOLE</title>
+    <link href="/static/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <script type="application/javascript" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap-select.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/nav.js}"></script>
+
+    <style type="text/css">
+        .title {
+            text-align: left;
+            font-size: 30px;
+            margin-left: 30px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .content {
+            font-size: 18px;
+            margin-left: 30px;
+        }
+
+    </style>
+
+</head>
+<body>
+<div style="height: 52px; width: 100%;background-color: #f8f8f8">
+    <div id="mynav"></div>
+</div>
+<div class="container-fluid">
+    <div class="title">
+        <p>链接</p>
+    </div>
+    <div class="content">
+        <ol>
+            <li><a href="/api/job-info-manage/">job 信息管理页面</a>：用于 job 的增删改、脚本修改、依赖顺序调整。</li>
+            <li><a href="/api/pipeline/">pipeline 模式执行页面</a>：按照 job 依赖顺序，自动执行所有 job。</li>
+            <li><a href="/api/benchmark/">benchmark 模式执行页面</a>：稳定性测试，用于将一个 job 重复运行 N 次。</li>
+            <li><a href="/api/step/">step 模式执行页面</a>：点哪个 job 就跑那个，忽略依赖顺序，跑完后不会调起后继 job。</li>
+            <li><a href="/api/execution/showAll">查看所有 job 的历史执行记录</a></li>
+        </ol>
+    </div>
+
+    <br>
+    <div class="title">
+        <p>说明</p>
+    </div>
+    <div class="content">
+        <ul>
+            <li>作业状态只能为
+                <ol>
+                    <li>ready：就绪，可执行。</li>
+                    <li>running：正在运行，可停止。</li>
+                    <li>completed：已完成，不可重复执行。</li>
+                    <li>terminated：异常终止，可再次执行。</li>
+                </ol>
+            </li>
+            <li>脚本
+                <ol>
+                    <li>启动脚本、停止脚本应尽快返回，将实际执行任务放在后台。否则页面会长时间无响应。</li>
+                    <li>监测脚本只能返回running、completed、terminated。</li>
+                </ol>
+            </li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>

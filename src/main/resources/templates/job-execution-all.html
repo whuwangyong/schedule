@@ -1,0 +1,196 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>CONSOLE</title>
+    <link href="/static/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <style type="text/css">
+
+        .title {
+            text-align: center;
+            font-size: 30px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .btnRight {
+            text-align: right;
+            margin: 5px 15px;
+        }
+
+        .head {
+            border: solid;
+            border-color: rgba(148, 150, 162, 0.59);
+            border-width: 1px;
+        }
+    </style>
+    <script type="application/javascript" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap-select.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/job-execution-all.js}"></script>
+    <script type="application/javascript" th:src="@{/js/nav.js}"></script>
+
+</head>
+<body>
+<div style="height: 52px; width: 100%;background-color: #f8f8f8">
+    <div id="mynav"></div>
+</div>
+<div class="container-fluid" style="padding-top: 15px;">
+
+    <div class="head">
+        <div class="title">所有 Job 的历史执行记录</div>
+        <hr class="line">
+        <div class="btnRight">
+            <!--<a href="/" style="font-size: inherit;margin-right: inherit; ">Home</a>-->
+            <button type="button" class="btn btn-primary btnFilter">筛选</button>
+        </div>
+    </div>
+
+    <nav style="text-align: right">
+        <ul class="pagination">
+            <!--首页-->
+            <li>
+                <a th:if="${not isFirstPage}"
+                   th:href="@{${'/api/execution/showAll'}(jobId=${jobId},state=${state},runMode=${runMode},pageNum='1',pageSize=${pageSize})}"
+                   aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+                <a th:if="${isFirstPage}" href="javascript:void(0);" aria-label="Previous">
+                    <span th:disabled="true" aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+
+            <!--上一页-->
+            <li>
+                <a th:if="${not isFirstPage}"
+                   th:href="@{${'/api/execution/showAll'}(jobId=${jobId},state=${state},runMode=${runMode},pageNum=${pageNum-1},pageSize=${pageSize})}"
+                   aria-label="Previous">
+                    <span aria-hidden="true">&lsaquo;</span>
+                </a>
+                <a th:if="${isFirstPage}" href="javascript:void(0);" aria-label="Previous">
+                    <span th:disabled="true" aria-hidden="true">&lsaquo;</span>
+                </a>
+            </li>
+
+            <!--中间页-->
+            <li th:each="pageNo:${#numbers.sequence(pageNum,pageNum+navigatePages-1)}">
+                <a th:if="${pageNo le totalPages and pageNo eq pageNum}" href="javascript:void(0);">
+                    <span style="font-weight: bold" th:text="${pageNo}"></span>
+                </a>
+                <a th:if="${pageNo le totalPages and pageNo ne pageNum}"
+                   th:href="@{${'/api/execution/showAll'}(jobId=${jobId},state=${state},runMode=${runMode},pageNum=${pageNo},pageSize=${pageSize})}">
+                    <span th:text="${pageNo}"></span>
+                </a>
+            </li>
+
+            <!--下一页-->
+            <li>
+                <a th:if="${not isLastPage}"
+                   th:href="@{${'/api/execution/showAll'}(jobId=${jobId},state=${state},runMode=${runMode},pageNum=${pageNum+1},pageSize=${pageSize})}"
+                   aria-label="Next">
+                    <span aria-hidden="true">&rsaquo;</span>
+                </a>
+                <a th:if="${isLastPage}" href="javascript:void(0);" aria-label="Next">
+                    <span th:disabled="true" aria-hidden="true">&rsaquo;</span>
+                </a>
+            </li>
+
+            <!--尾页-->
+            <li>
+                <a th:if="${not isLastPage}"
+                   th:href="@{${'/api/execution/showAll'}(jobId=${jobId},state=${state},runMode=${runMode},pageNum=${totalPages},pageSize=${pageSize})}"
+                   aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+                <a th:if="${isLastPage}" href="javascript:void(0);" aria-label="Next">
+                    <span th:disabled="true" aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr class="active">
+            <th>#序号</th>
+            <th>exeId</th>
+            <th>jobId</th>
+            <th>state</th>
+            <th>开始时间</th>
+            <th>结束时间</th>
+            <th>耗时(秒)</th>
+            <th>返回信息</th>
+            <th>执行模式</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item,itemStat:${executions}">
+            <td th:text="${itemStat.index+1}"></td>
+            <td th:text="${item.exeId}"></td>
+            <td th:text="${item.jobId}"></td>
+            <td th:text="${item.state}"></td>
+            <td th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${#temporals.format(item.endTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${item.duration}"></td>
+            <td th:text="${item.resultMsg}"></td>
+            <td th:text="${item.runMode}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="btnFilterModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">按照以下条件进行筛选</h4>
+            </div>
+
+            <div class="modal-body">
+                <form id="btnFilterModalForm" method="get" action="/api/execution/showAll"
+                      enctype="multipart/form-data">
+                    <div>
+                        <div class="input-group">
+                            <span class="input-group-addon">job：</span>
+                            <select name="jobId" class="form-control" id="selectJobId" data-size="6">
+                                <option selected value="">所有</option>
+                                <option th:each="job:${jobs}"
+                                        th:value="${job.jobId}"
+                                        th:text="${job.jobId} + ' - ' + ${job.jobName}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">执行状态：</span>
+                            <select name="state" class="form-control" id="selectState" data-size="6">
+                                <option selected value="">所有</option>
+                                <option value="completed">completed</option>
+                                <option value="terminated">terminated</option>
+                                <option value="running">running</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">运行模式：</span>
+                            <select name="runMode" class="form-control" id="selectRunMode" data-size="6">
+                                <option selected value="">所有</option>
+                                <option value="pipeline">pipeline</option>
+                                <option value="step">step</option>
+                                <option value="benchmark">benchmark</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterYes">确定</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

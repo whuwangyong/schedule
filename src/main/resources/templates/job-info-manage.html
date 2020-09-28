@@ -1,0 +1,222 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>CONSOLE</title>
+    <link href="/static/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <script type="application/javascript" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap-select.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/nav.js}"></script>
+    <style type="text/css">
+        .btnDelete, .btnEdit {
+            margin-right: 8px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 30px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .btnRight {
+            text-align: right;
+            margin: 5px 15px;
+        }
+
+        .head {
+            border: solid;
+            border-color: rgba(148, 150, 162, 0.59);
+            border-width: 1px;
+        }
+    </style>
+    <script type="application/javascript" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap-select.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/job-info-manage.js}"></script>
+
+</head>
+<body>
+<div style="height: 52px; width: 100%;background-color: #f8f8f8">
+    <div id="mynav"></div>
+</div>
+<div class="container-fluid" style="padding-top: 15px;">
+
+    <div class="head">
+        <div class="title">Job 信息管理</div>
+        <hr class="line">
+        <div class="btnRight">
+            <!--<a href="/" style="font-size: inherit;margin-right: inherit; ">Home</a>-->
+            <button type="button" class="btn btn-primary btnCreate" data-toggle="modal">新建</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr class="active">
+            <th>执行顺序</th>
+            <th>jobId</th>
+            <th>jobName</th>
+            <th>preJobId</th>
+            <th>nextJobId</th>
+            <th>startCmd</th>
+            <th>checkCmd</th>
+            <th>stopCmd</th>
+            <!--<th>initCmd</th>-->
+            <th style="text-align: center;">operation</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item,itemStat:${linkedJobs}">
+            <td th:text="${itemStat.index+1}"></td>
+            <td th:id="jobId_+${item.jobId}" th:text="${item.jobId}"></td>
+            <td th:id="jobName_+${item.jobId}" th:text="${item.jobName}"></td>
+            <td th:id="preJob_+${item.jobId}" th:text="${item.preJobId}"></td>
+            <td th:id="nextJob_+${item.jobId}" th:text="${item.nextJobId}"></td>
+            <td th:id="startCmd_+${item.jobId}" th:text="${item.startCmd}"></td>
+            <td th:id="checkCmd_+${item.jobId}" th:text="${item.checkCmd}"></td>
+            <td th:id="stopCmd_+${item.jobId}" th:text="${item.stopCmd}"></td>
+            <!--<td th:id="initCmd_+${item.jobId}" th:text="${item.initCmd}"></td>-->
+            <td style="text-align: center;">
+                <div class="btn-group text-center" role="group"
+                     th:data-id="${item.jobId}">
+                    <button type="button" class="btn btn-default btnEdit">修改</button>
+                    <button type="button" class="btn btn-danger btnDelete" disabled>删除</button>
+                </div>
+            </td>
+        </tr>
+
+        <tr style="font-style: italic" th:each="item,itemStat:${unlinkedJobs}">
+            <td th:text="不执行"></td>
+            <td th:id="jobId_+${item.jobId}" th:text="${item.jobId}"></td>
+            <td th:id="jobName_+${item.jobId}" th:text="${item.jobName}"></td>
+            <td th:id="preJob_+${item.jobId}" th:text="${item.preJobId}"></td>
+            <td th:id="nextJob_+${item.jobId}" th:text="${item.nextJobId}"></td>
+            <td th:id="startCmd_+${item.jobId}" th:text="${item.startCmd}"></td>
+            <td th:id="checkCmd_+${item.jobId}" th:text="${item.checkCmd}"></td>
+            <td th:id="stopCmd_+${item.jobId}" th:text="${item.stopCmd}"></td>
+            <!--<td th:id="initCmd_+${item.jobId}" th:text="${item.initCmd}"></td>-->
+            <td style="text-align: center;">
+                <div class="btn-group text-center" role="group"
+                     th:data-id="${item.jobId}">
+                    <button type="button" class="btn btn-default btnEdit">修改</button>
+                    <button type="button" class="btn btn-danger btnDelete" disabled>删除</button>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <p style="text-align: right; color:darkblue; font-size: 16px; "> *不需要在pipeline中执行的job，可以通过配置依赖进行跳过。不建议直接删除。</p>
+</div>
+
+<div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="updateModalLabel">修改 job 信息</h4>
+            </div>
+
+            <div class="modal-body">
+                <form id="updateForm" method="post" action="/api/job-info-manage/update" enctype="multipart/form-data">
+                    <div>
+                        <!--<input type="hidden" class="form-control" name="jobId" id="edit_jobId" />-->
+                        <div class="input-group">
+                            <span class="input-group-addon">jobId</span>
+                            <input type="text" readonly="readonly" alias="no-edit" class="form-control" name="jobId"
+                                   id="edit_jobId"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">作业名</span>
+                            <input type="text" alias="no-edit" class="form-control" name="jobName" id="edit_jobName"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">preJobId</span>
+                            <input type="text" alias="no-edit" class="form-control" name="preJobId" id="edit_preJob"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">nextJobId</span>
+                            <input type="text" alias="no-edit" class="form-control" name="nextJobId" id="edit_nextJob"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">启动脚本</span>
+                            <input type="text" alias="no-edit" class="form-control" name="startCmd" id="edit_startCmd"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">监测脚本</span>
+                            <input type="text" alias="no-edit" class="form-control" name="checkCmd" id="edit_checkCmd"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">停止脚本</span>
+                            <input type="text" alias="no-edit" class="form-control" name="stopCmd" id="edit_stopCmd"/>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="submitUpdate">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="createModalLabel">新增 job</h4>
+            </div>
+
+            <div class="modal-body">
+                <form id="createForm" method="post" action="/api/job-info-manage/add" enctype="multipart/form-data">
+                    <div>
+                        <div class="input-group">
+                            <span class="input-group-addon">jobId</span>
+                            <input type="text" alias="no-edit" class="form-control" name="jobId" id="create_jobId"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">作业名</span>
+                            <input type="text" alias="no-edit" class="form-control" name="jobName" id="create_jobName"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">preJobId</span>
+                            <input type="text" alias="no-edit" class="form-control" name="preJob" id="create_preJob"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">nextJobId</span>
+                            <input type="text" alias="no-edit" class="form-control" name="nextJob" id="create_nextJob"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">启动脚本</span>
+                            <input type="text" alias="no-edit" class="form-control" name="startCmd"
+                                   id="create_startCmd"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">监测脚本</span>
+                            <input type="text" alias="no-edit" class="form-control" name="checkCmd"
+                                   id="create_checkCmd"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">停止脚本</span>
+                            <input type="text" alias="no-edit" class="form-control" name="stopCmd" id="create_stopCmd"/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="submitCreate">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

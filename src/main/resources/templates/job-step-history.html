@@ -1,0 +1,141 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>CONSOLE</title>
+    <link href="/static/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <script type="application/javascript" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap-select.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/nav.js}"></script>
+    <style type="text/css">
+
+        .title {
+            text-align: center;
+            font-size: 30px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .btnRight {
+            text-align: right;
+            margin: 5px 15px;
+        }
+
+        .head {
+            border: solid;
+            border-color: rgba(148, 150, 162, 0.59);
+            border-width: 1px;
+        }
+    </style>
+
+</head>
+<body>
+<div style="height: 52px; width: 100%;background-color: #f8f8f8">
+    <div id="mynav"></div>
+</div>
+<div class="container-fluid" style="padding-top: 15px;">
+
+    <div class="head">
+        <div class="title">Job step 模式执行历史记录</div>
+        <div class="btnRight">
+            <!--<a href="/" style="font-size: inherit;margin-right: inherit; ">Home</a>-->
+        </div>
+    </div>
+
+    <nav style="text-align: right">
+        <ul class="pagination">
+            <!--首页-->
+            <li>
+                <a th:if="${not isFirstPage}"
+                   th:href="@{${'/api/step/history/'}(pageNum='1',pageSize=${pageSize})}"
+                   aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+                <a th:if="${isFirstPage}" href="javascript:void(0);" aria-label="Previous">
+                    <span th:disabled="true" aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+
+            <!--上一页-->
+            <li>
+                <a th:if="${not isFirstPage}"
+                   th:href="@{${'/api/step/history/'}(pageNum=${pageNum-1},pageSize=${pageSize})}"
+                   aria-label="Previous">
+                    <span aria-hidden="true">&lsaquo;</span>
+                </a>
+                <a th:if="${isFirstPage}" href="javascript:void(0);" aria-label="Previous">
+                    <span th:disabled="true" aria-hidden="true">&lsaquo;</span>
+                </a>
+            </li>
+
+            <!--中间页-->
+            <li th:each="pageNo:${#numbers.sequence(pageNum,pageNum+navigatePages-1)}">
+                <a th:if="${pageNo le totalPages and pageNo eq pageNum}" href="javascript:void(0);">
+                    <span style="font-weight: bold" th:text="${pageNo}"></span>
+                </a>
+                <a th:if="${pageNo le totalPages and pageNo ne pageNum}"
+                   th:href="@{${'/api/step/history/'}(pageNum=${pageNo},pageSize=${pageSize})}">
+                    <span th:text="${pageNo}"></span>
+                </a>
+            </li>
+
+            <!--下一页-->
+            <li>
+                <a th:if="${not isLastPage}"
+                   th:href="@{${'/api/step/history/'}(pageNum=${pageNum+1},pageSize=${pageSize})}"
+                   aria-label="Next">
+                    <span aria-hidden="true">&rsaquo;</span>
+                </a>
+                <a th:if="${isLastPage}" href="javascript:void(0);" aria-label="Next">
+                    <span th:disabled="true" aria-hidden="true">&rsaquo;</span>
+                </a>
+            </li>
+
+            <!--尾页-->
+            <li>
+                <a th:if="${not isLastPage}"
+                   th:href="@{${'/api/step/history/'}(pageNum=${totalPages},pageSize=${pageSize})}"
+                   aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+                <a th:if="${isLastPage}" href="javascript:void(0);" aria-label="Next">
+                    <span th:disabled="true" aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr class="active">
+            <th>#序号</th>
+            <th>exeId</th>
+            <th>jobId</th>
+            <th>jobName</th>
+            <th>state</th>
+            <th>开始时间</th>
+            <th>结束时间</th>
+            <th>耗时(秒)</th>
+            <th>返回信息</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item,itemStat:${historyDtos}">
+            <td th:text="${itemStat.index+1}"></td>
+            <td th:text="${item.exeId}"></td>
+            <td th:text="${item.jobId}"></td>
+            <td th:text="${item.jobName}"></td>
+            <td th:text="${item.state}"></td>
+            <td th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${#temporals.format(item.endTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${item.duration}"></td>
+            <td th:text="${item.resultMsg}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

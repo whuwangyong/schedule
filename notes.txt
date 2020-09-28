@@ -1,0 +1,13 @@
+TODO
+1.
+PipelineService.sortByLink 与 JobInfoManageService 中方法重复，需要重构。二者参数不一样
+
+2.
+前端导航栏
+-->已完成
+
+3.
+roundsDone roundsTotal 提取成服务，目前与start() 和 nextRound() 强耦合
+
+4.
+sh -x 的错误输出写到一边，太多了，影响正常日志

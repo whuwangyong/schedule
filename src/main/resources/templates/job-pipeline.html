@@ -1,0 +1,222 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <!--<meta http-equiv="refresh" content="5">-->
+    <title>CONSOLE</title>
+    <link href="/static/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <style type="text/css">
+
+        .title {
+            text-align: center;
+            font-size: 30px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .btnLeft {
+            text-align: left;
+            margin: 5px 15px;
+        }
+
+        .btnRight {
+            text-align: right;
+            margin: 5px 15px;
+        }
+
+        .head {
+            border: solid;
+            border-color: rgba(148, 150, 162, 0.59);
+            border-width: 1px;
+        }
+    </style>
+    <script type="application/javascript" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap-select.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/job-pipeline.js}"></script>
+    <script type="application/javascript" th:src="@{/js/auto-reload.js}"></script>
+    <script type="application/javascript" th:src="@{/js/nav.js}"></script>
+
+</head>
+<body onload="autoReload()">
+<div style="height: 52px; width: 100%;background-color: #f8f8f8">
+    <div id="mynav"></div>
+</div>
+<div class="container-fluid" style="padding-top: 15px;">
+    <div class="head">
+        <div class="title">Job pipeline 模式执行控制</div>
+        <hr class="line">
+        <div class="btnRight">
+            <p hidden th:id="currentMode" th:text="${runMode}"></p>
+            <p th:text="'当前运行模式：'+${runMode}"></p>
+            <!--<a href="/" style="font-size: inherit;margin-right: inherit; ">Home</a>-->
+            <a href="/api/pipeline/history/" style="font-size: inherit;margin-right: inherit; ">查看历史</a>
+            <button type="button" class="btn btn-default btnChangeMode">切换运行模式</button>
+            <button type="button" class="btn btn-primary btnSetRounds">设置重跑次数</button>
+            <button type="button" class="btn btn-primary btnStart">开始</button>
+            <button type="button" class="btn btn-warning btnStop">停止</button>
+            <button type="button" class="btn btn-primary btnResume">断点续作</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr class="active">
+            <th>jobId</th>
+            <th>jobName</th>
+            <th>state</th>
+            <th>preJobId</th>
+            <th>nextJobId</th>
+            <th>开始时间</th>
+            <th>结束时间</th>
+            <th>耗时(秒)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item,itemStat:${pipelineDtos}">
+            <!--<td th:text="${itemStat.index+1}"></td>-->
+            <td th:id="jobId_+${item.jobId}" th:text="${item.jobId}"></td>
+            <td th:id="jobName_+${item.jobId}" th:text="${item.jobName}"></td>
+            <td th:id="state_+${item.jobId}" th:text="${item.state}"></td>
+            <td th:id="preJobId_+${item.jobId}" th:text="${item.preJobId}"></td>
+            <td th:id="nextJobId_+${item.jobId}" th:text="${item.nextJobId}"></td>
+            <td th:id="startTime_+${item.jobId}"
+                th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:id="endTime_+${item.jobId}" th:text="${#temporals.format(item.endTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:id="duration_+${item.jobId}" th:text="${item.duration}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <p style="text-align: right; color:darkblue; font-size: 18px; " th:text="'当前状态：'+${roundStatus}"></p>
+    <ul>
+        <h3>说明</h3>
+        <p>
+        <li><h4>纯耗时与总耗时</h4></li>
+        总耗时：整个流程，从开始到结束，一共消耗的时间<br>
+        纯耗时：每个 job 的耗时之和。与总耗时相比，刨除了脚本的启动时间、pipeline 流程中途停止等异常等待的时间<br>
+
+        <li><h4>断点续作</h4></li>
+        <h5>1. 造成断点的场景</h5>
+        (1) 用户点击停止按钮<br>
+        (2) start 脚本启动程序失败，返回 terminated<br>
+        (3) check 脚本检测到程序异常结束，返回 terminate<br>
+
+        <h5>2. 后端处理逻辑</h5>
+        找到断点 job，将其上次执行的 exeId 从 pipeline 中移除；然后重新执行该 job，并将新的 exeId 加入 pipeline。这样不影响统计流程的纯耗时。
+
+        <h5>3. 注意事项</h5>
+        由于脚本的不确定性，可能返回给调度 terminated，但节点程序实际上已被脚本调起。
+        <p style="color: red"> 因此，在续作之前，请查看集群日志，确保节点程序已终止。</p>
+    </ul>
+
+
+</div>
+
+
+<div class="modal fade" id="changeModeModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">选择Job运行模式</h4>
+            </div>
+
+            <div class="modal-body">
+                <form id="changeModeForm" method="post" action="/api/run_mode/set" enctype="multipart/form-data">
+                    <div>
+
+                        <div class="input-group">
+                            <span class="input-group-addon">runMode</span>
+                            <!--这个name=newMode对应后台的POST方法参数-->
+                            <select name="newMode" class="form-control" id="setRunMode" data-size="6">
+                                <option value="pipeline" selected="selected">pipeline： 按照 job 依赖顺序，自动执行全部 job</option>
+                                <option value="step">step：点哪个 job 就执行哪个，不会自动执行后续 job</option>
+                                <option value="benchmark">benchmark：把一个job重复执行 N 次，测试稳定性</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="btnChangeModeYes">确定</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="setRoundsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">设置整个流程的重跑次数</h4>
+            </div>
+
+            <div class="modal-body">
+                <form id="setRoundsForm" method="post" action="/api/pipeline/setRounds"
+                      enctype="multipart/form-data">
+                    <div>
+                        <div class="input-group">
+                            <div class="input-group">
+                                <span class="input-group-addon">整个流程，你想跑几轮？</span>
+                                <input type="text" placeholder="请输入大于0的整数" alias="no-edit" class="form-control"
+                                       name="roundsTotal" id="roundsTotalText"/>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="btnSetRoundsYes">确定</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--<div class="modal fade" id="btnStartModal" tabindex="-1" role="dialog">-->
+<!--<div class="modal-dialog">-->
+<!--<div class="modal-content">-->
+<!--<div class="modal-header">-->
+<!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>-->
+<!--<h4 class="modal-title">从指定的 job 开始执行 pipeline </h4>-->
+<!--</div>-->
+
+<!--<div class="modal-body">-->
+<!--<form id="btnStartModalForm" method="get" action="/api/pipeline/start" enctype="multipart/form-data">-->
+<!--<div>-->
+
+<!--<div class="input-group">-->
+<!--<span class="input-group-addon">选择起始 job</span>-->
+<!--<select class="form-control" data-size="10" name="jobId">-->
+<!--<option selected="selected"-->
+<!--th:value="${jobs.get(0).jobId}"-->
+<!--th:text="${jobs.get(0).jobId} + ' - ' + ${jobs.get(0).jobName}">-->
+<!--</option>-->
+<!--<option th:each="job:${jobs.subList(1,jobs.size())}"-->
+<!--th:value="${job.jobId}"-->
+<!--th:text="${job.jobId} + ' - ' + ${job.jobName}">-->
+<!--</option>-->
+<!--</select>-->
+<!--</div>-->
+
+<!--</div>-->
+<!--<div class="modal-footer">-->
+<!--<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>-->
+<!--<button type="button" class="btn btn-primary" id="btnStartYes">确定</button>-->
+<!--</div>-->
+<!--</form>-->
+<!--</div>-->
+<!--</div>-->
+<!--</div>-->
+<!--</div>-->
+
+
+</body>
+</html>

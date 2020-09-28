@@ -1,0 +1,170 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <!--<meta http-equiv="refresh" content="5">-->
+    <title>CONSOLE</title>
+    <link href="/static/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <script type="application/javascript" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap-select.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/nav.js}"></script>
+    <style type="text/css">
+
+        .btnStart, .btnStop, .btnChangeState {
+            margin-right: 8px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 30px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .btnRight {
+            text-align: right;
+            margin: 5px 15px;
+        }
+
+        .head {
+            border: solid;
+            border-color: rgba(148, 150, 162, 0.59);
+            border-width: 1px;
+        }
+    </style>
+    <script type="application/javascript" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/bootstrap-select.min.js}"></script>
+    <script type="application/javascript" th:src="@{/js/job-step.js}"></script>
+    <script type="application/javascript" th:src="@{/js/auto-reload.js}"></script>
+
+</head>
+<body onload="autoReload()">
+<div style="height: 52px; width: 100%;background-color: #f8f8f8">
+    <div id="mynav"></div>
+</div>
+<div class="container-fluid" style="padding-top: 15px;">
+
+    <div class="head">
+        <div class="title">Job step 模式执行控制</div>
+        <hr class="line">
+        <div class="btnRight">
+            <p hidden th:id="currentMode" th:text="${runMode}"></p>
+            <p th:text="'当前运行模式：'+${runMode}"></p>
+            <!--<a href="/" style="font-size: inherit;margin-right: inherit; ">Home</a>-->
+            <a href="/api/step/history/" style="font-size: inherit;margin-right: inherit; ">查看历史</a>
+            <button type="button" class="btn btn-default btnChangeMode">切换运行模式</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr class="active">
+            <th>jobId</th>
+            <th>jobName</th>
+            <th>state</th>
+            <th>preJobId</th>
+            <th>nextJobId</th>
+            <th>开始时间</th>
+            <th>结束时间</th>
+            <th>耗时(秒)</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item,itemStat:${stepDtos}">
+            <!--<td th:text="${itemStat.index+1}"></td>-->
+            <td th:id="jobId_+${item.jobId}" th:text="${item.jobId}"></td>
+            <td th:id="jobName_+${item.jobId}" th:text="${item.jobName}"></td>
+            <td th:id="state_+${item.jobId}" th:text="${item.state}"></td>
+            <td th:id="preJobId_+${item.jobId}" th:text="${item.preJobId}"></td>
+            <td th:id="nextJobId_+${item.jobId}" th:text="${item.nextJobId}"></td>
+            <td th:id="startTime_+${item.jobId}"
+                th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:id="endTime_+${item.jobId}" th:text="${#temporals.format(item.endTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:id="duration_+${item.jobId}" th:text="${item.duration}"></td>
+            <td style="text-align: center;">
+                <div class="btn-group text-center" role="group"
+                     th:data-id="${item.jobId}">
+                    <button type="button" class="btn btn-default btnStart">启动</button>
+                    <button type="button" class="btn btn-default btnStop">停止</button>
+                    <!--<button type="button" class="btn btn-warning btnChangeState">修改状态</button>-->
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+
+<div class="modal fade" id="changeStateModal" tabindex="-1" role="dialog" aria-labelledby="changeStateModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="changeStateModalLabel">更改 Job 的执行状态</h4>
+            </div>
+
+            <div class="modal-body">
+                <form id="changeStateForm" method="post" action="/api/step/changeState" enctype="multipart/form-data">
+                    <div>
+                        <input type="hidden" class="form-control" id="jobId" name="jobId"/>
+                        <div class="input-group">
+                            <span class="input-group-addon">作业状态</span>
+                            <select name="state" class="form-control" id="edit_state" data-size="10">
+                                <option value="ready" selected="selected">ready</option>
+                                <option value="running">running</option>
+                                <option value="completed">completed</option>
+                                <option value="terminated">terminated</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="saveState">确定</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="changeModeModal" tabindex="-1" role="dialog" aria-labelledby="changeModeModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="changeModeModalLabel">选择Job运行模式</h4>
+            </div>
+
+            <div class="modal-body">
+                <form id="changeModeForm" method="post" action="/api/run_mode/set" enctype="multipart/form-data">
+                    <div>
+                        <div class="input-group">
+                            <span class="input-group-addon">runMode</span>
+                            <!--这个name=newMode对应后台的POST方法参数-->
+                            <select name="newMode" class="form-control" id="setRunMode" data-size="6">
+                                <option value="pipeline" selected="selected">pipeline： 按照 job 依赖顺序，自动执行全部 job</option>
+                                <option value="step">step：点哪个 job 就执行哪个，不会自动执行后续 job</option>
+                                <option value="benchmark">benchmark：把一个job重复执行 N 次，测试稳定性</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="saveMode">确定</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
