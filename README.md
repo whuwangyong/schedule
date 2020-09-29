@@ -10,3 +10,9 @@
 - `Thymeleaf`
 - `MyBatis`，通用 `Mapper`
 - `PageHelper` 分页
+
+
+
+# run
+
+将resource目录下的数据导入到数据库，即可运行。
