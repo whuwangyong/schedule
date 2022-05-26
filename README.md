@@ -1,3 +1,4 @@
+## 简介
 这是一个基于`SpringBoot` 写的调度框架，通过调用服务器上的脚本，启动/停止/监测服务器上运行的程序。
 
 具备以下功能点：
@@ -13,6 +14,9 @@
 
 
 
-# run
+## 运行
 
 将resource目录下的数据导入到数据库，即可运行。
+
+## 参考
+1. [chenerzhu/quartz-console](https://github.com/chenerzhu/quartz-console)
